@@ -1,0 +1,905 @@
+{\rtf1\ansi\ansicpg949\cocoartf2865
+\cocoatextscaling0\cocoaplatform0{\fonttbl\f0\fswiss\fcharset0 Helvetica;\f1\fnil\fcharset129 AppleSDGothicNeo-Regular;}
+{\colortbl;\red255\green255\blue255;}
+{\*\expandedcolortbl;;}
+\paperw11900\paperh16840\margl1440\margr1440\vieww11520\viewh8400\viewkind0
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+
+\f0\fs24 \cf0 # app.py\
+# Streamlit + Google Gemini 
+\f1 \'c3\'aa\'ba\'bf
+\f0  
+\f1 \'bf\'b9\'c1\'a6
+\f0 \
+# 
+\f1 \'b8\'f1\'c0\'fb
+\f0 : 
+\f1 \'b0\'ed\'b0\'b4
+\f0  
+\f1 \'c0\'c0\'b4\'eb
+\f0  
+\f1 \'c3\'aa\'ba\'bf
+\f0  (
+\f1 \'bc\'ee\'c7\'ce\'b8\'f4
+\f0  
+\f1 \'b1\'b8\'b8\'c5
+\f0  
+\f1 \'ba\'d2\'c6\'ed
+\f0  
+\f1 \'bb\'e7\'c7\'d7
+\f0  
+\f1 \'c1\'a2\'bc\'f6
+\f0 /
+\f1 \'c1\'a4\'b8\'ae
+\f0 /
+\f1 \'c0\'cc\'b8\'de\'c0\'cf
+\f0  
+\f1 \'bf\'e4\'c3\'bb
+\f0 )\
+# 
+\f1 \'b8\'f0\'b5\'a8
+\f0  
+\f1 \'b1\'e2\'ba\'bb\'b0\'aa
+\f0 : gemini-2.0-flash\
+# 
+\f1 \'c7\'d9\'bd\'c9
+\f0  
+\f1 \'b1\'e2\'b4\'c9
+\f0 : 
+\f1 \'b4\'eb\'c8\'ad
+\f0  
+\f1 \'c8\'f7\'bd\'ba\'c5\'e4\'b8\'ae
+\f0 , 429 
+\f1 \'c0\'e7\'bd\'c3\'b5\'b5
+\f0 (
+\f1 \'c3\'d6\'b1\'d9
+\f0  6
+\f1 \'c5\'cf
+\f0  
+\f1 \'c0\'af\'c1\'f6
+\f0  
+\f1 \'c8\'c4
+\f0  
+\f1 \'c0\'e7\'bd\'c3\'c0\'db
+\f0 ), CSV 
+\f1 \'c0\'da\'b5\'bf
+\f0  
+\f1 \'b1\'e2\'b7\'cf
+\f0 (
+\f1 \'bf\'c9\'bc\'c7
+\f0 ), 
+\f1 \'b7\'ce\'b1\'d7
+\f0  
+\f1 \'b4\'d9\'bf\'ee\'b7\'ce\'b5\'e5
+\f0 , 
+\f1 \'b4\'eb\'c8\'ad
+\f0  
+\f1 \'c3\'ca\'b1\'e2\'c8\'ad
+\f0 , 
+\f1 \'b8\'f0\'b5\'a8
+\f0 /
+\f1 \'bc\'bc\'bc\'c7
+\f0  
+\f1 \'c7\'a5\'bd\'c3
+\f0 \
+\
+import streamlit as st\
+import time\
+import pandas as pd\
+import json\
+from datetime import datetime\
+\
+# --- 
+\f1 \'bf\'dc\'ba\'ce
+\f0  
+\f1 \'b6\'f3\'c0\'cc\'ba\'ea\'b7\'af\'b8\'ae
+\f0 (generative ai) 
+\f1 \'bb\'e7\'bf\'eb
+\f0  
+\f1 \'bd\'c3
+\f0  
+\f1 \'c1\'d6\'bc\'ae
+\f0  
+\f1 \'c7\'d8\'c1\'a6
+\f0  ---\
+# try:\
+#     import google.generativeai as genai\
+# except Exception:\
+#     genai = None\
+\
+# --------------------------\
+# 
+\f1 \'bc\'b3\'c1\'a4
+\f0  / UI 
+\f1 \'c3\'ca\'b1\'e2\'c8\'ad
+\f0 \
+# --------------------------\
+st.set_page_config(page_title="Customer Support Chatbot (Gemini)", layout="wide")\
+\
+st.title("
+\f1 \'b0\'ed\'b0\'b4
+\f0  
+\f1 \'c0\'c0\'b4\'eb
+\f0  
+\f1 \'c3\'aa\'ba\'bf
+\f0  \'97 
+\f1 \'bc\'ee\'c7\'ce\'b8\'f4
+\f0  
+\f1 \'ba\'d2\'c6\'ed
+\f0  
+\f1 \'c1\'a2\'bc\'f6
+\f0  (Gemini)")\
+st.markdown("
+\f1 \'c1\'a4\'c1\'df\'c7\'cf\'b0\'ed
+\f0  
+\f1 \'b0\'f8\'b0\'a8
+\f0  
+\f1 \'be\'ee\'b8\'b0
+\f0  
+\f1 \'c0\'c0\'b4\'eb\'b8\'a6
+\f0  
+\f1 \'c7\'cf\'b4\'c2
+\f0  
+\f1 \'c3\'aa\'ba\'bf\'c0\'d4\'b4\'cf\'b4\'d9
+\f0 . (
+\f1 \'b8\'f0\'b5\'a8
+\f0 : gemini-2.0-flash)")\
+\
+# 
+\f1 \'bb\'e7\'c0\'cc\'b5\'e5\'b9\'d9
+\f0 : 
+\f1 \'bc\'b3\'c1\'a4
+\f0 \
+with st.sidebar.expander("
+\f1 \'bc\'b3\'c1\'a4
+\f0 "):\
+    api_key_secret = st.text_input("API Key (
+\f1 \'bc\'b1\'c5\'c3
+\f0 ) \'97 st.secrets['GEMINI_API_KEY'] 
+\f1 \'b4\'eb\'bd\'c5
+\f0  
+\f1 \'bb\'e7\'bf\'eb
+\f0  
+\f1 \'b0\'a1\'b4\'c9
+\f0 ", type="password")\
+    model_choice = st.selectbox("
+\f1 \'b8\'f0\'b5\'a8
+\f0  
+\f1 \'bc\'b1\'c5\'c3
+\f0 ", ["gemini-2.0-flash", "gemini-2.0"], index=0)\
+    csv_autosave = st.checkbox("
+\f1 \'b4\'eb\'c8\'ad
+\f0  
+\f1 \'c0\'da\'b5\'bf
+\f0  CSV 
+\f1 \'c0\'fa\'c0\'e5
+\f0  (
+\f1 \'bc\'bc\'bc\'c7
+\f0  
+\f1 \'c1\'be\'b7\'e1
+\f0  
+\f1 \'bd\'c3
+\f0 )", value=True)\
+    max_retries = st.number_input("429 
+\f1 \'c0\'e7\'bd\'c3\'b5\'b5
+\f0  
+\f1 \'c8\'bd\'bc\'f6
+\f0 ", min_value=1, max_value=5, value=2)\
+    system_prompt_preview = st.checkbox("
+\f1 \'bd\'c3\'bd\'ba\'c5\'db
+\f0  
+\f1 \'c7\'c1\'b7\'d2\'c7\'c1\'c6\'ae
+\f0  
+\f1 \'ba\'b8\'c0\'cc\'b1\'e2
+\f0 ", value=False)\
+\
+# 
+\f1 \'bd\'c3\'bd\'ba\'c5\'db
+\f0  
+\f1 \'c7\'c1\'b7\'d2\'c7\'c1\'c6\'ae
+\f0  (
+\f1 \'bf\'e4\'c3\'bb\'c7\'cf\'bd\'c5\'b4\'eb\'b7\'ce
+\f0 )\
+SYSTEM_PROMPT = (\
+    "
+\f1 \'b4\'e7\'bd\'c5\'c0\'ba
+\f0  
+\f1 \'c4\'a3\'c0\'fd\'c7\'cf\'b0\'ed
+\f0  
+\f1 \'b0\'f8\'b0\'a8\'c0\'fb\'c0\'ce
+\f0  
+\f1 \'b0\'ed\'b0\'b4
+\f0  
+\f1 \'c0\'c0\'b4\'eb
+\f0  
+\f1 \'c3\'aa\'ba\'bf\'c0\'d4\'b4\'cf\'b4\'d9
+\f0 . "\
+    "
+\f1 \'bb\'e7\'bf\'eb\'c0\'da\'b4\'c2
+\f0  
+\f1 \'bc\'ee\'c7\'ce\'b8\'f4
+\f0  
+\f1 \'b1\'b8\'b8\'c5
+\f0  
+\f1 \'b0\'fa\'c1\'a4\'bf\'a1\'bc\'ad
+\f0  
+\f1 \'b0\'de\'c0\'ba
+\f0  
+\f1 \'ba\'d2\'c6\'ed
+\f0 /
+\f1 \'ba\'d2\'b8\'b8\'c0\'bb
+\f0  
+\f1 \'c0\'cc\'be\'df\'b1\'e2\'c7\'d5\'b4\'cf\'b4\'d9
+\f0 . "\
+    "
+\f1 \'b4\'d9\'c0\'bd
+\f0  
+\f1 \'b1\'d4\'c4\'a2\'c0\'bb
+\f0  
+\f1 \'b9\'dd\'b5\'e5\'bd\'c3
+\f0  
+\f1 \'b5\'fb\'b8\'a3\'bc\'bc\'bf\'e4
+\f0 :\\n"\
+    "1) 
+\f1 \'c1\'a4\'c1\'df\'c7\'cf\'b0\'ed
+\f0  
+\f1 \'b0\'f8\'b0\'a8
+\f0  
+\f1 \'be\'ee\'b8\'b0
+\f0  
+\f1 \'b8\'bb\'c5\'f5\'b7\'ce
+\f0  
+\f1 \'c0\'c0\'b4\'e4\'c7\'d5\'b4\'cf\'b4\'d9
+\f0 .\\n"\
+    "2) 
+\f1 \'bb\'e7\'bf\'eb\'c0\'da\'c0\'c7
+\f0  
+\f1 \'ba\'d2\'c6\'ed
+\f0  
+\f1 \'bb\'e7\'c7\'d7\'c0\'bb
+\f0  
+\f1 \'b1\'b8\'c3\'bc\'c0\'fb\'c0\'b8\'b7\'ce
+\f0  
+\f1 \'c1\'a4\'b8\'ae\'c7\'cf\'bf\'a9
+\f0  (
+\f1 \'b9\'ab\'be\'f9\'c0\'cc
+\f0  / 
+\f1 \'be\'f0\'c1\'a6
+\f0  / 
+\f1 \'be\'ee\'b5\'f0\'bc\'ad
+\f0  / 
+\f1 \'be\'ee\'b6\'bb\'b0\'d4
+\f0 ) 
+\f1 \'c7\'fc\'bd\'c4\'c0\'b8\'b7\'ce
+\f0  
+\f1 \'bc\'f6\'c1\'fd\'c7\'cf\'b0\'ed
+\f0 , "\
+    "
+\f1 \'c0\'cc\'b8\'a6
+\f0  
+\f1 \'b0\'ed\'b0\'b4
+\f0  
+\f1 \'c0\'c0\'b4\'eb
+\f0  
+\f1 \'b4\'e3\'b4\'e7\'c0\'da\'bf\'a1\'b0\'d4
+\f0  
+\f1 \'c0\'fc\'b4\'de\'c7\'d1\'b4\'d9\'b4\'c2
+\f0  
+\f1 \'c3\'eb\'c1\'f6\'b7\'ce
+\f0  
+\f1 \'be\'c8\'b3\'bb\'c7\'d5\'b4\'cf\'b4\'d9
+\f0 .\\n"\
+    "3) 
+\f1 \'b4\'eb\'c8\'ad
+\f0  
+\f1 \'b8\'b6\'c1\'f6\'b8\'b7\'bf\'a1\'b4\'c2
+\f0  
+\f1 \'b4\'e3\'b4\'e7\'c0\'da
+\f0  
+\f1 \'c8\'ae\'c0\'ce
+\f0  
+\f1 \'c8\'c4
+\f0  
+\f1 \'c8\'b8\'bd\'c5\'c0\'bb
+\f0  
+\f1 \'c0\'a7\'c7\'d8
+\f0  
+\f1 \'c0\'cc\'b8\'de\'c0\'cf
+\f0  
+\f1 \'c1\'d6\'bc\'d2\'b8\'a6
+\f0  
+\f1 \'bf\'e4\'c3\'bb\'c7\'cf\'bc\'bc\'bf\'e4
+\f0 . "\
+    "
+\f1 \'b8\'b8\'c0\'cf
+\f0  
+\f1 \'bb\'e7\'bf\'eb\'c0\'da\'b0\'a1
+\f0  
+\f1 \'bf\'ac\'b6\'f4
+\f0  
+\f1 \'c1\'a6\'b0\'f8\'c0\'bb
+\f0  
+\f1 \'bf\'f8\'c4\'a1
+\f0  
+\f1 \'be\'ca\'c0\'b8\'b8\'e9
+\f0 : "\
+    "\'93
+\f1 \'c1\'cb\'bc\'db\'c7\'cf\'c1\'f6\'b8\'b8
+\f0 , 
+\f1 \'bf\'ac\'b6\'f4\'c3\'b3
+\f0  
+\f1 \'c1\'a4\'ba\'b8\'b8\'a6
+\f0  
+\f1 \'b9\'de\'c1\'f6
+\f0  
+\f1 \'b8\'f8\'c7\'cf\'bf\'a9
+\f0  
+\f1 \'b4\'e3\'b4\'e7\'c0\'da\'c0\'c7
+\f0  
+\f1 \'b0\'cb\'c5\'e4
+\f0  
+\f1 \'b3\'bb\'bf\'eb\'c0\'bb
+\f0  
+\f1 \'b9\'de\'c0\'b8\'bd\'c7
+\f0  
+\f1 \'bc\'f6
+\f0  
+\f1 \'be\'f8\'be\'ee\'bf\'e4
+\f0 .\'94 
+\f1 \'b6\'f3\'b0\'ed
+\f0  
+\f1 \'c1\'a4\'c1\'df\'c8\'f7
+\f0  
+\f1 \'be\'c8\'b3\'bb\'c7\'cf\'bc\'bc\'bf\'e4
+\f0 .\\n"\
+)\
+\
+if system_prompt_preview:\
+    st.sidebar.markdown("**SYSTEM PROMPT:**")\
+    st.sidebar.code(SYSTEM_PROMPT, language="text")\
+\
+# API Key 
+\f1 \'bf\'ec\'bc\'b1\'bc\'f8\'c0\'a7
+\f0 : st.secrets -> 
+\f1 \'c0\'d4\'b7\'c2
+\f0  UI\
+def get_api_key():\
+    if "AIzaSyBcUdPpnsr3ZM14JvxUyf8WlMHNbp7Pvs4" in st.secrets:\
+        return st.secrets["AIzaSyBcUdPpnsr3ZM14JvxUyf8WlMHNbp7Pvs4"]\
+    if api_key_secret:\
+        return api_key_secret\
+    return None\
+\
+API_KEY = get_api_key()\
+\
+# (
+\f1 \'bc\'b1\'c5\'c3
+\f0 ) 
+\f1 \'bd\'c7\'c1\'a6
+\f0  Google Generative AI 
+\f1 \'bb\'e7\'bf\'eb
+\f0  
+\f1 \'bd\'c3
+\f0  
+\f1 \'c3\'ca\'b1\'e2\'c8\'ad
+\f0  (
+\f1 \'c1\'d6\'bc\'ae
+\f0  
+\f1 \'c7\'d8\'c1\'a6
+\f0  
+\f1 \'c8\'c4
+\f0  
+\f1 \'bb\'e7\'bf\'eb
+\f0 )\
+# if API_KEY and genai:\
+#     genai.configure(api_key=API_KEY)\
+\
+# --------------------------\
+# Session state 
+\f1 \'c3\'ca\'b1\'e2\'c8\'ad
+\f0 \
+# --------------------------\
+if "messages" not in st.session_state:\
+    # messages: list of dicts \{role: "system/user/assistant", "content": str, "time": timestamp\}\
+    st.session_state.messages = [\{"role": "system", "content": SYSTEM_PROMPT, "time": datetime.utcnow().isoformat()\}]\
+if "conversation_log" not in st.session_state:\
+    st.session_state.conversation_log = []  # rows for CSV: timestamp, role, text\
+if "retry_count" not in st.session_state:\
+    st.session_state.retry_count = 0\
+if "session_id" not in st.session_state:\
+    st.session_state.session_id = datetime.utcnow().strftime("%Y%m%d%H%M%S")\
+if "last_status" not in st.session_state:\
+    st.session_state.last_status = "ready"\
+\
+# --------------------------\
+# Helper: add message and log\
+# --------------------------\
+def add_message(role, text):\
+    entry = \{"role": role, "content": text, "time": datetime.utcnow().isoformat()\}\
+    st.session_state.messages.append(entry)\
+    st.session_state.conversation_log.append(\{"timestamp": entry["time"], "role": role, "text": text\})\
+\
+# --------------------------\
+# Mock / API call wrapper\
+# --------------------------\
+def call_gemini_api(prompt_messages, model=model_choice):\
+    """\
+    
+\f1 \'bd\'c7\'c1\'a6
+\f0  
+\f1 \'bb\'e7\'bf\'eb
+\f0  
+\f1 \'bd\'c3
+\f0  
+\f1 \'c0\'cc
+\f0  
+\f1 \'c7\'d4\'bc\'f6\'b8\'a6
+\f0  google.generativeai
+\f1 \'b3\'aa
+\f0  REST 
+\f1 \'c8\'a3\'c3\'e2\'b7\'ce
+\f0  
+\f1 \'b1\'b8\'c7\'f6\'c7\'cf\'bc\'bc\'bf\'e4
+\f0 .\
+    
+\f1 \'c7\'f6\'c0\'e7\'b4\'c2
+\f0  
+\f1 \'b1\'e2\'ba\'bb\'c0\'fb\'c0\'b8\'b7\'ce
+\f0  
+\f1 \'b7\'ce\'c4\'c3
+\f0  
+\f1 \'b8\'f0\'c0\'c7
+\f0  
+\f1 \'c0\'c0\'b4\'e4\'c0\'bb
+\f0  
+\f1 \'c1\'a6\'b0\'f8\'c7\'d5\'b4\'cf\'b4\'d9
+\f0 . (
+\f1 \'bd\'c7\'bb\'e7\'bf\'eb
+\f0 : 
+\f1 \'c1\'d6\'bc\'ae\'b5\'c8
+\f0  genai 
+\f1 \'c8\'a3\'c3\'e2\'c0\'bb
+\f0  
+\f1 \'c2\'fc\'b0\'ed
+\f0 )\
+    """\
+    # If no API_KEY provided, return mock response\
+    if not API_KEY:\
+        # simple echo-style mock with empathetic phrasing and request for details\
+        user_latest = [m for m in prompt_messages if m["role"] == "user"][-1]["content"]\
+        resp = (\
+            f"
+\f1 \'c1\'a4\'b8\'bb
+\f0  
+\f1 \'ba\'d2\'c6\'ed\'c7\'cf\'bc\'cc\'b0\'da\'be\'ee\'bf\'e4
+\f0 . 
+\f1 \'b8\'bb\'be\'b8\'c7\'d8
+\f0  
+\f1 \'c1\'d6\'bd\'c5
+\f0  
+\f1 \'b3\'bb\'bf\'eb
+\f0 : \\"\{user_latest\}\\" 
+\f1 \'b8\'a6
+\f0  
+\f1 \'c1\'a2\'bc\'f6\'c7\'df\'bd\'c0\'b4\'cf\'b4\'d9
+\f0 . "\
+            "
+\f1 \'ba\'d2\'c6\'ed
+\f0  
+\f1 \'bb\'e7\'c7\'d7\'c0\'bb
+\f0  
+\f1 \'b4\'f5
+\f0  
+\f1 \'c1\'a4\'c8\'ae\'c8\'f7
+\f0  
+\f1 \'c1\'a4\'b8\'ae\'c7\'cf\'b1\'e2
+\f0  
+\f1 \'c0\'a7\'c7\'d8
+\f0 , 
+\f1 \'b9\'ab\'be\'f9\'c0\'cc
+\f0  
+\f1 \'b9\'ae\'c1\'a6\'bf\'b4\'b4\'c2\'c1\'f6
+\f0 (
+\f1 \'b9\'ab\'be\'f9\'c0\'cc
+\f0 ), 
+\f1 \'be\'f0\'c1\'a6
+\f0 (
+\f1 \'b3\'af\'c2\'a5
+\f0 /
+\f1 \'bd\'c3\'b0\'a3
+\f0 ), "\
+            "
+\f1 \'be\'ee\'b5\'f0\'bc\'ad
+\f0 (
+\f1 \'c1\'d6\'b9\'ae
+\f0 /
+\f1 \'b0\'e1\'c1\'a6
+\f0 /
+\f1 \'b9\'e8\'bc\'db
+\f0 /
+\f1 \'b1\'e2\'c5\'b8
+\f0 ), 
+\f1 \'be\'ee\'b6\'bb\'b0\'d4
+\f0 (
+\f1 \'c1\'f5\'bb\'f3
+\f0 /
+\f1 \'bf\'c0\'b7\'f9
+\f0  
+\f1 \'b8\'de\'bd\'c3\'c1\'f6
+\f0  
+\f1 \'b5\'ee
+\f0 )
+\f1 \'b8\'a6
+\f0  
+\f1 \'be\'cb\'b7\'c1\'c1\'d6\'bd\'c7
+\f0  
+\f1 \'bc\'f6
+\f0  
+\f1 \'c0\'d6\'b3\'aa\'bf\'e4
+\f0 ?"\
+        )\
+        return \{"status": "ok", "output": resp\}\
+\
+    # Example of how a real call might be made with google.generativeai (uncomment when configured)\
+    # try:\
+    #     response = genai.chat.create(\
+    #         model=model,\
+    #         messages=[\{"role": m["role"], "content": m["content"]\} for m in prompt_messages],\
+    #     )\
+    #     # parse response text\
+    #     text = response.last\
+    #     return \{"status": "ok", "output": text\}\
+    # except Exception as e:\
+    #     # detect rate limit from exception message\
+    #     err_text = str(e)\
+    #     if "429" in err_text or "rate" in err_text.lower():\
+    #         return \{"status": "rate_limit", "error": err_text\}\
+    #     return \{"status": "error", "error": err_text\}\
+\
+    # If API key present but library not configured, fallback mock\
+    return \{"status": "ok", "output": "[MOCK RESPONSE] (API key provided but client not configured)"\}\
+\
+# --------------------------\
+# Retry handling: 429 -> keep last 6 turns and restart conversation\
+# --------------------------\
+def safe_gemini_chat(system_msg_list, user_messages, model):\
+    # combine system + history\
+    prompt_msgs = system_msg_list + user_messages\
+    attempt = 0\
+    max_attempts = int(max_retries)\
+    while attempt <= max_attempts:\
+        result = call_gemini_api(prompt_msgs, model=model)\
+        if result.get("status") == "ok":\
+            st.session_state.retry_count = 0\
+            return result["output"]\
+        elif result.get("status") == "rate_limit":\
+            attempt += 1\
+            st.session_state.retry_count += 1\
+            wait_sec = 2 ** attempt\
+            st.warning(f"API rate limit detected. 
+\f1 \'c0\'e7\'bd\'c3\'b5\'b5
+\f0  \{attempt\}/\{max_attempts\} \'97 \{wait_sec\}s 
+\f1 \'b4\'eb\'b1\'e2\'c7\'d5\'b4\'cf\'b4\'d9
+\f0 .")\
+            time.sleep(wait_sec)\
+            if attempt > max_attempts:\
+                # trim history to last 6 user+assistant pairs (i.e., last 12 entries ignoring system)\
+                non_system = [m for m in st.session_state.messages if m["role"] != "system"]\
+                trimmed = non_system[-12:]  # last 12 messages ~ 6 turns\
+                # rebuild prompt: system + trimmed\
+                prompt_msgs = [m for m in st.session_state.messages if m["role"] == "system"] + trimmed\
+                st.warning("
+\f1 \'b4\'eb\'c8\'ad\'b0\'a1
+\f0  
+\f1 \'b1\'e6\'be\'ee\'bc\'ad
+\f0  
+\f1 \'c3\'d6\'b1\'d9
+\f0  6
+\f1 \'c5\'cf\'b8\'b8
+\f0  
+\f1 \'c0\'af\'c1\'f6\'c7\'cf\'b0\'ed
+\f0  
+\f1 \'bb\'f5
+\f0  
+\f1 \'bc\'bc\'bc\'c7\'c0\'b8\'b7\'ce
+\f0  
+\f1 \'c0\'e7\'bd\'c3\'c0\'db\'c7\'d5\'b4\'cf\'b4\'d9
+\f0 .")\
+                # try one more time with trimmed\
+                result2 = call_gemini_api(prompt_msgs, model=model)\
+                if result2.get("status") == "ok":\
+                    return result2["output"]\
+                return \{"error": "rate_limit_final", "detail": result2\}\
+        else:\
+            # other errors\
+            return \{"error": "api_error", "detail": result.get("error")\}\
+    return \{"error": "unknown_failure"\}\
+\
+# --------------------------\
+# UI: main chat area\
+# --------------------------\
+col1, col2 = st.columns([3,1])\
+with col1:\
+    st.subheader("
+\f1 \'b4\'eb\'c8\'ad
+\f0 ")\
+    chat_container = st.container()\
+    with chat_container:\
+        # display history\
+        for msg in st.session_state.messages:\
+            if msg["role"] == "system":\
+                continue\
+            if msg["role"] == "user":\
+                st.markdown(f"**
+\f1 \'bb\'e7\'bf\'eb\'c0\'da
+\f0 :** \{msg['content']\}")\
+            elif msg["role"] == "assistant":\
+                st.markdown(f"**
+\f1 \'c3\'aa\'ba\'bf
+\f0 :** \{msg['content']\}")\
+\
+    st.write("---")\
+\
+    # input\
+    user_input = st.text_area("
+\f1 \'b8\'de\'bd\'c3\'c1\'f6
+\f0  
+\f1 \'c0\'d4\'b7\'c2
+\f0 ", value="", height=120, key="user_input")\
+    send_col1, send_col2, send_col3 = st.columns([1,1,1])\
+    with send_col1:\
+        send_btn = st.button("
+\f1 \'c0\'fc\'bc\'db
+\f0 ")\
+    with send_col2:\
+        reset_btn = st.button("
+\f1 \'b4\'eb\'c8\'ad
+\f0  
+\f1 \'c3\'ca\'b1\'e2\'c8\'ad
+\f0 ")\
+    with send_col3:\
+        download_log_btn = st.button("
+\f1 \'c5\'d8\'bd\'ba\'c6\'ae
+\f0  
+\f1 \'b7\'ce\'b1\'d7
+\f0  
+\f1 \'b4\'d9\'bf\'ee\'b7\'ce\'b5\'e5
+\f0 ")\
+\
+with col2:\
+    st.subheader("
+\f1 \'bc\'bc\'bc\'c7
+\f0  / 
+\f1 \'bc\'b3\'c1\'a4
+\f0 ")\
+    st.markdown(f"- 
+\f1 \'bc\'bc\'bc\'c7
+\f0  ID: `\{st.session_state.session_id\}`")\
+    st.markdown(f"- 
+\f1 \'b8\'f0\'b5\'a8
+\f0 : **\{model_choice\}**")\
+    st.markdown(f"- 
+\f1 \'b8\'de\'bd\'c3\'c1\'f6
+\f0  
+\f1 \'bc\'f6
+\f0 : \{len(st.session_state.messages)\}")\
+    st.markdown(f"- 
+\f1 \'b8\'b6\'c1\'f6\'b8\'b7
+\f0  
+\f1 \'bb\'f3\'c5\'c2
+\f0 : \{st.session_state.last_status\}")\
+    if st.session_state.retry_count:\
+        st.markdown(f"- 
+\f1 \'c3\'d6\'b1\'d9
+\f0  
+\f1 \'c0\'e7\'bd\'c3\'b5\'b5
+\f0  
+\f1 \'bc\'f6
+\f0 : \{st.session_state.retry_count\}")\
+\
+    st.markdown("---")\
+    st.markdown("**CSV / 
+\f1 \'b7\'ce\'b1\'d7
+\f0 **")\
+    if csv_autosave:\
+        st.info("
+\f1 \'b4\'eb\'c8\'ad\'b0\'a1
+\f0  
+\f1 \'c0\'da\'b5\'bf\'c0\'b8\'b7\'ce
+\f0  CSV
+\f1 \'b7\'ce
+\f0  
+\f1 \'c0\'fa\'c0\'e5\'b5\'cb\'b4\'cf\'b4\'d9
+\f0  (
+\f1 \'bc\'bc\'bc\'c7
+\f0  
+\f1 \'c1\'be\'b7\'e1
+\f0  
+\f1 \'bd\'c3
+\f0 ).")\
+    if st.session_state.conversation_log:\
+        df_preview = pd.DataFrame(st.session_state.conversation_log).tail(10)\
+        st.dataframe(df_preview)\
+    st.markdown("---")\
+    st.markdown("**
+\f1 \'b4\'d9\'bf\'ee\'b7\'ce\'b5\'e5
+\f0 **")\
+    # CSV download\
+    if st.session_state.conversation_log:\
+        df_all = pd.DataFrame(st.session_state.conversation_log)\
+        csv_bytes = df_all.to_csv(index=False).encode("utf-8")\
+        st.download_button("CSV 
+\f1 \'b4\'d9\'bf\'ee\'b7\'ce\'b5\'e5
+\f0 ", csv_bytes, file_name=f"chatlog_\{st.session_state.session_id\}.csv", mime="text/csv")\
+    else:\
+        st.write("
+\f1 \'b4\'eb\'c8\'ad
+\f0  
+\f1 \'b1\'e2\'b7\'cf\'c0\'cc
+\f0  
+\f1 \'be\'f8\'bd\'c0\'b4\'cf\'b4\'d9
+\f0 .")\
+\
+# --------------------------\
+# 
+\f1 \'b9\'f6\'c6\'b0
+\f0  
+\f1 \'b5\'bf\'c0\'db
+\f0 : reset\
+# --------------------------\
+if reset_btn:\
+    st.session_state.messages = [\{"role": "system", "content": SYSTEM_PROMPT, "time": datetime.utcnow().isoformat()\}]\
+    st.session_state.conversation_log = []\
+    st.success("
+\f1 \'b4\'eb\'c8\'ad\'b8\'a6
+\f0  
+\f1 \'c3\'ca\'b1\'e2\'c8\'ad\'c7\'df\'bd\'c0\'b4\'cf\'b4\'d9
+\f0 .")\
+    st.experimental_rerun()\
+\
+# --------------------------\
+# 
+\f1 \'b9\'f6\'c6\'b0
+\f0  
+\f1 \'b5\'bf\'c0\'db
+\f0 : download text log\
+# --------------------------\
+if download_log_btn:\
+    if st.session_state.conversation_log:\
+        lines = []\
+        for r in st.session_state.conversation_log:\
+            lines.append(f"[\{r['timestamp']\}] \{r['role'].upper()\}: \{r['text']\}")\
+        txt = "\\n".join(lines)\
+        st.download_button("
+\f1 \'c5\'d8\'bd\'ba\'c6\'ae
+\f0  
+\f1 \'c6\'c4\'c0\'cf\'b7\'ce
+\f0  
+\f1 \'c0\'fa\'c0\'e5
+\f0 ", txt.encode("utf-8"), file_name=f"chatlog_\{st.session_state.session_id\}.txt", mime="text/plain")\
+    else:\
+        st.info("
+\f1 \'c0\'fa\'c0\'e5\'c7\'d2
+\f0  
+\f1 \'b7\'ce\'b1\'d7\'b0\'a1
+\f0  
+\f1 \'be\'f8\'bd\'c0\'b4\'cf\'b4\'d9
+\f0 .")\
+\
+# --------------------------\
+# Send: handle user input\
+# --------------------------\
+if send_btn and user_input.strip():\
+    user_text = user_input.strip()\
+    add_message("user", user_text)\
+    st.session_state.last_status = "sending"\
+\
+    # compile system + recent history for API\
+    system_msgs = [m for m in st.session_state.messages if m["role"] == "system"]\
+    # send full history (or consider truncation for long sessions)\
+    user_and_assistant = [m for m in st.session_state.messages if m["role"] != "system"]\
+\
+    # call wrapper\
+    api_out = safe_gemini_chat(system_msgs, user_and_assistant, model_choice)\
+    if isinstance(api_out, dict) and api_out.get("error"):\
+        st.error(f"API 
+\f1 \'c8\'a3\'c3\'e2
+\f0  
+\f1 \'bf\'c0\'b7\'f9
+\f0 : \{api_out.get('detail')\}")\
+        st.session_state.last_status = "error"\
+    else:\
+        bot_text = api_out if isinstance(api_out, str) else str(api_out)\
+        add_message("assistant", bot_text)\
+        st.session_state.last_status = "ok"\
+        st.experimental_rerun()\
+\
+# --------------------------\
+# Autosave CSV on unload (simple explicit button)\
+# --------------------------\
+st.markdown("---")\
+if st.button("
+\f1 \'bc\'bc\'bc\'c7
+\f0  
+\f1 \'c0\'fa\'c0\'e5
+\f0  (CSV
+\f1 \'b7\'ce
+\f0 )"):\
+    if st.session_state.conversation_log:\
+        df_save = pd.DataFrame(st.session_state.conversation_log)\
+        csv_buf = df_save.to_csv(index=False).encode("utf-8")\
+        st.download_button("CSV 
+\f1 \'c6\'c4\'c0\'cf
+\f0  
+\f1 \'bb\'fd\'bc\'ba
+\f0 ", csv_buf, file_name=f"chatlog_\{st.session_state.session_id\}.csv", mime="text/csv")\
+    else:\
+        st.info("
+\f1 \'c0\'fa\'c0\'e5\'c7\'d2
+\f0  
+\f1 \'b4\'eb\'c8\'ad\'b0\'a1
+\f0  
+\f1 \'be\'f8\'bd\'c0\'b4\'cf\'b4\'d9
+\f0 .")\
+\
+# --------------------------\
+# 
+\f1 \'b3\'a1
+\f0 : 
+\f1 \'bb\'e7\'bf\'eb
+\f0  
+\f1 \'be\'c8\'b3\'bb
+\f0 \
+# --------------------------\
+st.info("
+\f1 \'c2\'fc\'b0\'ed
+\f0 : 
+\f1 \'bd\'c7\'c1\'a6
+\f0  Gemini API
+\f1 \'b8\'a6
+\f0  
+\f1 \'bb\'e7\'bf\'eb\'c7\'cf\'b7\'c1\'b8\'e9
+\f0  
+\f1 \'b6\'f3\'c0\'cc\'ba\'ea\'b7\'af\'b8\'ae\'b8\'a6
+\f0  
+\f1 \'bc\'b3\'c4\'a1\'c7\'cf\'b0\'ed
+\f0  API_KEY
+\f1 \'b8\'a6
+\f0  
+\f1 \'c1\'a6\'b0\'f8\'c7\'d8\'be\'df
+\f0  
+\f1 \'c7\'d5\'b4\'cf\'b4\'d9
+\f0 . "\
+        "
+\f1 \'c7\'f6\'c0\'e7\'b4\'c2
+\f0  API
+\f1 \'c5\'b0
+\f0  
+\f1 \'b9\'cc\'bc\'b3\'c1\'a4
+\f0  
+\f1 \'bd\'c3
+\f0  
+\f1 \'b8\'f0\'c0\'c7
+\f0  
+\f1 \'c0\'c0\'b4\'e4\'c0\'b8\'b7\'ce
+\f0  
+\f1 \'b5\'bf\'c0\'db\'c7\'d5\'b4\'cf\'b4\'d9
+\f0 . 
+\f1 \'bd\'c7\'c1\'a6
+\f0  
+\f1 \'b9\'e8\'c6\'f7
+\f0  
+\f1 \'c0\'fc
+\f0  
+\f1 \'b9\'dd\'b5\'e5\'bd\'c3
+\f0  API 
+\f1 \'c8\'a3\'c3\'e2
+\f0  
+\f1 \'ba\'ce\'ba\'d0
+\f0 (genai.chat.create 
+\f1 \'b5\'ee
+\f0 )
+\f1 \'c0\'bb
+\f0  
+\f1 \'b1\'b8\'c7\'f6\'c7\'cf\'bc\'bc\'bf\'e4
+\f0 .")}
